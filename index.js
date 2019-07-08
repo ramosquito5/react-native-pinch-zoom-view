@@ -30,7 +30,8 @@ export default class PinchZoomView extends Component {
   static defaultProps = {
     scalable: true,
     minScale: 0.5,
-    maxScale: 2
+    maxScale: 2,
+    exit: () => null
   };
 
   constructor(props) {
@@ -92,8 +93,6 @@ export default class PinchZoomView extends Component {
   };
 
   _handlePanResponderMove = (e, gestureState) => {
-    console.log("Touch", { gestureState });
-
     // zoom
     if (gestureState.numberActiveTouches === 2) {
       let dx = Math.abs(
@@ -115,6 +114,14 @@ export default class PinchZoomView extends Component {
         gestureState.dx = 0;
         gestureState.dy = 0;
       }
+      const { dx, dy, vx, vy } = gestureState;
+      // console.log({ dy, vy });
+      //TODO: improve  the willness to leave the zoom
+      if (Math.abs(vy) > 6) {
+        //console.log("Swipe out y");
+        this.props.exit();
+      }
+
       let offsetX = this.state.lastX + gestureState.dx / this.state.scale;
       let offsetY = this.state.lastY + gestureState.dy / this.state.scale;
       // if ( offsetX < 0  || offsetY <  0 )
