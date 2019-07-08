@@ -1,10 +1,24 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet, PanResponder, ViewPropTypes } from 'react-native';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import {
+  View,
+  StyleSheet,
+  PanResponder,
+  ViewPropTypes,
+  TouchableWithoutFeedback
+} from "react-native";
 
 // Fallback when RN version is < 0.44
 const viewPropTypes = ViewPropTypes || View.propTypes;
-
+const initialState = {
+  scale: 1,
+  lastScale: 1,
+  offsetX: 0,
+  offsetY: 0,
+  lastX: 0,
+  lastY: 0,
+  lastMovePinch: false
+};
 export default class PinchZoomView extends Component {
   static propTypes = {
     ...viewPropTypes,
@@ -22,13 +36,7 @@ export default class PinchZoomView extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      scale: 1,
-      lastScale: 1,
-      offsetX: 0,
-      offsetY: 0,
-      lastX: 0,
-      lastY: 0,
-      lastMovePinch: false
+      ...initialState
     };
     this.distant = 150;
   }
@@ -41,7 +49,10 @@ export default class PinchZoomView extends Component {
       onPanResponderMove: this._handlePanResponderMove,
       onPanResponderRelease: this._handlePanResponderEnd,
       onPanResponderTerminationRequest: evt => true,
-      onShouldBlockNativeResponder: evt => false
+      onShouldBlockNativeResponder: evt => false,
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        return gestureState.dx != 0 && gestureState.dy != 0;
+      }
     });
   }
 
@@ -81,6 +92,8 @@ export default class PinchZoomView extends Component {
   };
 
   _handlePanResponderMove = (e, gestureState) => {
+    console.log("Touch", { gestureState });
+
     // zoom
     if (gestureState.numberActiveTouches === 2) {
       let dx = Math.abs(
@@ -108,7 +121,9 @@ export default class PinchZoomView extends Component {
       this.setState({ offsetX, offsetY, lastMovePinch: false });
     }
   };
-
+  _handleResetZoomScale = (event: any) => {
+    this.setState({ ...initialState });
+  };
   render() {
     return (
       <View
@@ -126,7 +141,12 @@ export default class PinchZoomView extends Component {
           }
         ]}
       >
-        {this.props.children}
+        <TouchableWithoutFeedback
+          onPress={this._handleResetZoomScale}
+          style={styles.container}
+        >
+          {this.props.children}
+        </TouchableWithoutFeedback>
       </View>
     );
   }
