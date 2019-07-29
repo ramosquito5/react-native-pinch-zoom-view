@@ -5,9 +5,12 @@ import {
   StyleSheet,
   PanResponder,
   ViewPropTypes,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Dimensions,
+  Platform
 } from "react-native";
 
+const { height: sHeight } = Dimensions.get("screen");
 // Fallback when RN version is < 0.44
 const viewPropTypes = ViewPropTypes || View.propTypes;
 const initialState = {
@@ -83,13 +86,28 @@ export default class PinchZoomView extends Component {
       this.distant = distant;
     }
   };
-
   _handlePanResponderEnd = (e, gestureState) => {
-    this.setState({
-      lastX: this.state.offsetX,
-      lastY: this.state.offsetY,
-      lastScale: this.state.scale
-    });
+    const DY_LIMIT = sHeight * 0.35;
+    if (this.state.scale === 1) {
+      //console.log({ dety: this.state.dy });
+
+      if (this.state.dy > DY_LIMIT) {
+        this.props.exit();
+      }
+      this.setState({
+        offsetX: 0,
+        offsetY: 0,
+        lastX: 0,
+        lastY: 0,
+        lastScale: this.state.scale
+      });
+    } else {
+      this.setState({
+        lastX: this.state.offsetX,
+        lastY: this.state.offsetY,
+        lastScale: this.state.scale
+      });
+    }
   };
 
   _handlePanResponderMove = (e, gestureState) => {
@@ -114,18 +132,38 @@ export default class PinchZoomView extends Component {
         gestureState.dx = 0;
         gestureState.dy = 0;
       }
-      const { dx, dy, vx, vy } = gestureState;
-      // console.log({ dy, vy });
+      const { dx, dy, vy, moveY } = gestureState;
+      // console.log({ sHeight });
+
+      //console.log({ dx, vy, dy, moveY });
       //TODO: improve  the willness to leave the zoom
-      if (Math.abs(vy) > 6) {
-        //console.log("Swipe out y");
-        this.props.exit();
+      //Fast or too much
+      const exitSpeed = Platform.OS === "ios" ? 5 : 3;
+
+      //
+      const { lastScale, scale, lastMovePinch } = this.state;
+      let offsetX = this.state.offsetX;
+      if (lastMovePinch || (scale !== 1 || lastScale !== 1)) {
+        offsetX = this.state.lastX + gestureState.dx / this.state.scale;
+      } else {
+        if (
+          Math.abs(vy) > exitSpeed ||
+          Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8
+        ) {
+          //console.log("Swipe out y");
+          this.props.exit();
+        }
       }
 
-      let offsetX = this.state.lastX + gestureState.dx / this.state.scale;
       let offsetY = this.state.lastY + gestureState.dy / this.state.scale;
+
       // if ( offsetX < 0  || offsetY <  0 )
-      this.setState({ offsetX, offsetY, lastMovePinch: false });
+      this.setState({
+        offsetX,
+        offsetY,
+        lastMovePinch: false,
+        dy: Math.abs(dy)
+      });
     }
   };
   _handleResetZoomScale = (event: any) => {
