@@ -145,14 +145,13 @@ export default class PinchZoomView extends Component {
       let offsetX = this.state.offsetX;
       if (lastMovePinch || (scale !== 1 || lastScale !== 1)) {
         offsetX = this.state.lastX + gestureState.dx / this.state.scale;
-      } else {
-        if (
-          Math.abs(vy) > exitSpeed ||
-          Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8
-        ) {
-          //console.log("Swipe out y");
-          this.props.exit();
-        }
+      }
+      if (
+        Math.abs(vy) > exitSpeed ||
+        Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8
+      ) {
+        //console.log("Swipe out y");
+        this.props.exit();
       }
 
       let offsetY = this.state.lastY + gestureState.dy / this.state.scale;
