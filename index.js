@@ -20,6 +20,7 @@ const initialState = {
   offsetY: 0,
   lastX: 0,
   lastY: 0,
+  startY: 0,
   lastMovePinch: false
 };
 export default class PinchZoomView extends Component {
@@ -85,6 +86,11 @@ export default class PinchZoomView extends Component {
       let distant = Math.sqrt(dx * dx + dy * dy);
       this.distant = distant;
     }
+    if (gestureState.numberActiveTouches === 1) {
+      this.setState({
+        startY: gestureState.moveY
+      });
+    }
   };
   _handlePanResponderEnd = (e, gestureState) => {
     const DY_LIMIT = sHeight * 0.35;
@@ -148,7 +154,8 @@ export default class PinchZoomView extends Component {
       }
       if (
         Math.abs(vy) > exitSpeed ||
-        Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8
+        (Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8 &&
+          Math.abs(moveY - this.state.startY) - sHeight / 10 > 0)
       ) {
         //console.log("Swipe out y");
         this.props.exit();
