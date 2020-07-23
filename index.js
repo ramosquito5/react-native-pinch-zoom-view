@@ -7,7 +7,7 @@ import {
   ViewPropTypes,
   TouchableWithoutFeedback,
   Dimensions,
-  Platform
+  Platform,
 } from "react-native";
 
 const { height: sHeight } = Dimensions.get("screen");
@@ -21,27 +21,27 @@ const initialState = {
   lastX: 0,
   lastY: 0,
   startY: 0,
-  lastMovePinch: false
+  lastMovePinch: false,
 };
 export default class PinchZoomView extends Component {
   static propTypes = {
     ...viewPropTypes,
     scalable: PropTypes.bool,
     minScale: PropTypes.number,
-    maxScale: PropTypes.number
+    maxScale: PropTypes.number,
   };
 
   static defaultProps = {
     scalable: true,
     minScale: 0.5,
     maxScale: 2,
-    exit: () => null
+    exit: () => null,
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      ...initialState
+      ...initialState,
     };
     this.distant = 150;
   }
@@ -53,11 +53,11 @@ export default class PinchZoomView extends Component {
       onPanResponderGrant: this._handlePanResponderGrant,
       onPanResponderMove: this._handlePanResponderMove,
       onPanResponderRelease: this._handlePanResponderEnd,
-      onPanResponderTerminationRequest: evt => true,
-      onShouldBlockNativeResponder: evt => false,
+      onPanResponderTerminationRequest: (evt) => true,
+      onShouldBlockNativeResponder: (evt) => false,
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
         return gestureState.dx != 0 && gestureState.dy != 0;
-      }
+      },
     });
   }
 
@@ -88,7 +88,7 @@ export default class PinchZoomView extends Component {
     }
     if (gestureState.numberActiveTouches === 1) {
       this.setState({
-        startY: gestureState.moveY
+        startY: gestureState.moveY,
       });
     }
   };
@@ -105,13 +105,13 @@ export default class PinchZoomView extends Component {
         offsetY: 0,
         lastX: 0,
         lastY: 0,
-        lastScale: this.state.scale
+        lastScale: this.state.scale,
       });
     } else {
       this.setState({
         lastX: this.state.offsetX,
         lastY: this.state.offsetY,
-        lastScale: this.state.scale
+        lastScale: this.state.scale,
       });
     }
   };
@@ -149,13 +149,13 @@ export default class PinchZoomView extends Component {
       //
       const { lastScale, scale, lastMovePinch } = this.state;
       let offsetX = this.state.offsetX;
-      if (lastMovePinch || (scale !== 1 || lastScale !== 1)) {
+      if (lastMovePinch || scale !== 1 || lastScale !== 1) {
         offsetX = this.state.lastX + gestureState.dx / this.state.scale;
       }
       if (
         Math.abs(vy) > exitSpeed ||
         (Math.abs(sHeight / 2 - moveY) > (sHeight / 2) * 0.8 &&
-          Math.abs(moveY - this.state.startY) - sHeight / 10 > 0)
+          Math.abs(moveY - this.state.startY) - sHeight / 5 > 0)
       ) {
         //console.log("Swipe out y");
         this.props.exit();
@@ -168,7 +168,7 @@ export default class PinchZoomView extends Component {
         offsetX,
         offsetY,
         lastMovePinch: false,
-        dy: Math.abs(dy)
+        dy: Math.abs(dy),
       });
     }
   };
@@ -187,9 +187,9 @@ export default class PinchZoomView extends Component {
               { scaleX: this.state.scale },
               { scaleY: this.state.scale },
               { translateX: this.state.offsetX },
-              { translateY: this.state.offsetY }
-            ]
-          }
+              { translateY: this.state.offsetY },
+            ],
+          },
         ]}
       >
         <TouchableWithoutFeedback
@@ -205,6 +205,6 @@ export default class PinchZoomView extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-  }
+    flex: 1,
+  },
 });
